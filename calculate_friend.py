@@ -1,8 +1,8 @@
 # 계산 벗
 
 cmd_list = '''------------------------------
-* 사용할 수 있는 명령어 *
-help (명령어) : 명령어의 설명
+* COMMAND *
+help (cmd) : command explain
 calc
 mem
 del
