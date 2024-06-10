@@ -1,5 +1,4 @@
 # 계산 벗
-import os
 
 cmd_list = '''------------------------------
 * COMMAND *
@@ -15,18 +14,15 @@ bar = "------------------------------"
 print(cmd_list)
 
 mem_list = []
-mem_idx = 1
 res = None
 
 def run(execute):
-    if "os" in execute:
-        return eval("print('Why are you trying to hack it?')")
+    local_vars = {f'mem{idx+1}': value for idx, value in enumerate(mem_list)}
     try:
-        return eval(execute)
-    except Exception as error:
-        print(f"Error in calculation: {error}")
+        return eval(execute, {"__builtins__": None}, local_vars)
+    except Exception as err:
+        print(f"Error in calculation: {err}")
         return None
-
 
 while True:
     print(bar)
@@ -36,56 +32,36 @@ while True:
         print("Error!! Please enter the command!")
         continue
 
-    if "help" in cmd:  # 명령어 목록
+    command = cmd[0]
+
+    if command == "help":
         if len(cmd) > 1:
-            if cmd[0] == 'list':
-                print('''------------------------------
-list
-COMMAND LIST 출력''')
-            elif cmd[0] == "calc" or cmd[0] == "calculate":
-                print('''
-calculate
-값을 계산
-계산 결과는 res에 저장
-사용 방법 : calc [수식]''')
-            elif cmd[0] == "mem" or cmd[0] == "memory":
-                print('''------------------------------
-memory
-값을 저장
-사용 방법 : mem [값]
-호출 방법 : mem[번호] 
-ex) calc mem1 + mem2''')
-            elif cmd[0] == "del" or cmd[0] == "delete":
-                print('''------------------------------
-delete
-메모리 값을 삭제
-사용 방법 : del 1''')
-            elif cmd[0] == "res" or cmd[0] == "result":
-                print('''------------------------------
-result
-가장 최근의 계산 결과를 출력''')
-            elif cmd[0] == "exit":
-                print('''------------------------------
-exit
-프로그램 종료''')
+            sub_command = cmd[1]
+            if sub_command == "calc" or sub_command == "calculate":
+                print('------------------------------\ncalculate\n값을 계산\n계산 결과는 res 변수에 저장\n사용 방법 : calc [수식]')
+            elif sub_command == "mem" or sub_command == "memory":
+                print('------------------------------\nmemory\n값을 저장\n사용 방법 : mem [값]\n호출 방법 : mem[번호]\nex) calc mem1 * 2')
+            elif sub_command == "del" or sub_command == "delete":
+                print('------------------------------\ndelete\n메모리 값을 삭제\n사용 방법 : del [번호] 또는 del all')
+            elif sub_command == "res" or sub_command == "result":
+                print('------------------------------\nresult\n가장 최근의 계산 결과를 출력')
+            elif sub_command == "exit":
+                print('------------------------------\nexit\n종료')
             else:
                 print("Error!! Please enter the correct command!")
+        else:
+            print(cmd_list)
         continue
 
-    command = cmd[0]
-    if command == "exit":  # 나가기
+    if command == "exit":
         print("Bye")
         print(bar)
         break
 
-    elif command == "list":
-        print(cmd_list)
-        continue
-
-    elif command == "calc" or command == "calculate":  # 계산
+    elif command == "calc" or command == "calculate":
         if len(cmd) > 1:
             print(bar)
-            execute = ''.join(cmd[1:])
+            execute = cmd[1]
             result = run(execute)
             res = result
             if result is not None:
@@ -93,26 +69,31 @@ exit
         else:
             print("Error!! Please enter the correct command!")
 
-    elif command == "del" or command == "delete":  # 메모리 삭제
-        if cmd[1] == "ALL" or cmd[1] == 'all':
-            mem_list = []
-            continue
-        if len(cmd) > 1 and cmd[1].isdigit():
-            idx = int(cmd[1])
-            if 1 <= idx < mem_idx:
-                del mem_list[idx - 1]
-                mem_idx -= 1
-            else:
-                print("Error!! Invalid memory index!")
+    elif command == "mem" or command == "memory":
+        if len(cmd) > 1:
+            execute = ''.join(cmd[1:])
+            try:
+                result = eval(execute)
+                mem_list.append(result)
+                exec(f'mem{len(mem_list)} = result')
+                print(f'mem{len(mem_list)} = {result}')
+            except Exception as error:
+                print(f"Error in memory assignment: {error}")
         else:
             print("Error!! Please enter the correct command!")
 
-    elif command == "mem" or command == "memory":  # 메모리 저장
+    elif command == "del" or command == "delete":
         if len(cmd) > 1:
-            execute = ''.join(cmd[1:])
-            result = exec(f'mem{mem_idx} = {execute}')
-            mem_list.append(result)
-            mem_idx += 1
+            if cmd[1].lower() == "all":
+                mem_list = []
+            elif cmd[1].isdigit():
+                idx = int(cmd[1])
+                if 1 <= idx <= len(mem_list):
+                    del mem_list[idx - 1]
+                else:
+                    print("Error!! Invalid memory index!")
+            else:
+                print("Error!! Please enter the correct command!")
         else:
             print("Error!! Please enter the correct command!")
 
@@ -123,7 +104,7 @@ exit
             print("Error!! Please calculate first!")
 
     elif command == "clear":
-        os.system('cls')
+        print("\033[H\033[J", end="")
 
-    else:  # 예외
+    else:
         print("Error!! Please enter the correct command!")
