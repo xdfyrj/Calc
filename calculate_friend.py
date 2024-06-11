@@ -2,8 +2,7 @@
 
 cmd_list = '''------------------------------
 * COMMAND *
-(command) help : command manual
-list
+(command) help : command manuals
 calculate
 memory
 delete
@@ -17,11 +16,11 @@ mem_list = []
 res = None
 
 def run(execute):
-    local_vars = {f'mem{idx+1}': value for idx, value in enumerate(mem_list)}
     try:
-        return eval(execute, {"__builtins__": None}, local_vars)
+        return eval(execute)
     except Exception as err:
-        print(f"Error in calculation: {err}")
+        print(f"Error!! Please enter the correct command!")
+        print(f"{err}")
         return None
 
 while True:
@@ -36,16 +35,15 @@ while True:
 
     if command == "help":
         if len(cmd) > 1:
-            sub_command = cmd[1]
-            if sub_command == "calc" or sub_command == "calculate":
+            if cmd[1] == "calc" or cmd[1] == "calculate":
                 print('------------------------------\ncalculate\n값을 계산\n계산 결과는 res 변수에 저장\n사용 방법 : calc [수식]')
-            elif sub_command == "mem" or sub_command == "memory":
+            elif cmd[1] == "mem" or cmd[1] == "memory":
                 print('------------------------------\nmemory\n값을 저장\n사용 방법 : mem [값]\n호출 방법 : mem[번호]\nex) calc mem1 * 2')
-            elif sub_command == "del" or sub_command == "delete":
+            elif cmd[1] == "del" or cmd[1] == "delete":
                 print('------------------------------\ndelete\n메모리 값을 삭제\n사용 방법 : del [번호] 또는 del all')
-            elif sub_command == "res" or sub_command == "result":
+            elif cmd[1] == "res" or cmd[1] == "result":
                 print('------------------------------\nresult\n가장 최근의 계산 결과를 출력')
-            elif sub_command == "exit":
+            elif cmd[1] == "exit":
                 print('------------------------------\nexit\n종료')
             else:
                 print("Error!! Please enter the correct command!")
@@ -61,7 +59,8 @@ while True:
     elif command == "calc" or command == "calculate":
         if len(cmd) > 1:
             print(bar)
-            execute = cmd[1]
+            print(cmd)
+            execute = ''.join(cmd[1:])
             result = run(execute)
             res = result
             if result is not None:
@@ -73,10 +72,17 @@ while True:
         if len(cmd) > 1:
             execute = ''.join(cmd[1:])
             try:
-                result = eval(execute)
-                mem_list.append(result)
-                exec(f'mem{len(mem_list)} = result')
-                print(f'mem{len(mem_list)} = {result}')
+                print(bar)
+                if (execute[0] == '\'' or execute[0] == '"') and (execute[-1] == '\'' or execute[-1] == '"'):
+                    result = execute[1:-1]
+                    mem_list.append(result)
+                    exec(f'mem{len(mem_list)} = "{mem_list[-1]}"')
+                    print(f'mem{len(mem_list)} = "{result}"')
+                else:
+                    result = eval(execute)
+                    mem_list.append(result)
+                    exec(f'mem{len(mem_list)} = {mem_list[-1]}')
+                    print(f'mem{len(mem_list)} = {result}')
             except Exception as error:
                 print(f"Error in memory assignment: {error}")
         else:
